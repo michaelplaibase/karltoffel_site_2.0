@@ -131,6 +131,28 @@ function renderSkraafoto(dir){
   }
 }
 
+/* Auto-mål (nDSM): forudfyld mængderne fra matrikel + bygninger + DHM. */
+function applyMeasurements(m){
+  if(!m) return;
+  state.maal = m;
+  const m2 = (v)=> DKK0.format(v) + " m²";
+  if(m.grundAreal) state.ejendom.grund = m2(m.grundAreal);
+  if(m.haekLangde) state.ejendom.haek = DKK0.format(m.haekLangde) + " m";
+  const put = (id,v)=>{ if(v>0){ const p = PRODUCTS.find(x=>x.id===id); if(p) p.qty = v; } };
+  put("graes", m.haveAreal); put("green", m.haveAreal); put("loev", m.haveAreal);
+  put("haek", m.haekLangde); put("tagrender", m.tagrendeLangde);
+  const hint = ROOT.querySelector(".demo-hint");
+  if(hint){
+    let t = "Målt automatisk fra matrikel + skråfoto/DHM: grund " + m2(m.grundAreal) + ", have " + m2(m.haveAreal);
+    if(m.tagAreal) t += ", tag " + m2(m.tagAreal) + (m.taghaeldning ? " (hældn. " + m.taghaeldning + "°)" : "");
+    t += ", hæk-omkreds " + DKK0.format(m.haekLangde) + " m" + (m.haekHojde ? " (~" + String(m.haekHojde).replace(".",",") + " m høj)" : "");
+    t += ". Ret mængderne direkte i listen.";
+    hint.textContent = t;
+  }
+  const active = ROOT.querySelector(".step.active");
+  if(active && active.id === "step-losning") renderTop();
+}
+
 function vaelgAdresse(titel){
   state.adresse = titel;
   lukListe();
@@ -139,6 +161,10 @@ function vaelgAdresse(titel){
   if(btnNej) btnNej.textContent = "Nej, prøv igen";
   /* Hent skråfoto parallelt med grave-animationen (fejler stille → SVG-fallback). */
   renderSkraafoto(VERIFY_DIRS[0]);
+  /* Auto-mål i baggrunden → forudfylder beregneren når kunden når dertil. */
+  if(window.KARLTOFFEL && window.KARLTOFFEL.measureProperty){
+    window.KARLTOFFEL.measureProperty(titel).then(applyMeasurements);
+  }
   koerGravning(()=> visStep("step-verify"));
 }
 

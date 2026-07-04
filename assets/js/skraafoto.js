@@ -55,12 +55,15 @@
         return fetch(CFG.dawaBase + "/jordstykker/" + ejerlav + "/" + matr + "?format=geojson&srid=25832")
           .then(function (r) { if (!r.ok) throw 0; return r.json(); })
           .then(function (gj) {
-            var g = gj.geometry || (gj.features && gj.features[0] && gj.features[0].geometry);
+            var f0 = gj.features && gj.features[0];
+            var g = gj.geometry || (f0 && f0.geometry);
             if (!g) return null;
+            var props = gj.properties || (f0 && f0.properties) || {};
             var ring = g.type === "MultiPolygon" ? g.coordinates[0][0] : g.coordinates[0];
             var cx = 0, cy = 0;
             ring.forEach(function (p) { cx += p[0]; cy += p[1]; });
-            return { ring: ring, centroid: [cx / ring.length, cy / ring.length], matrikelnr: matr };
+            return { ring: ring, centroid: [cx / ring.length, cy / ring.length], matrikelnr: matr,
+                     registreretareal: props.registreretareal };
           });
       })
       .catch(function () { return null; });
@@ -103,6 +106,168 @@
       })
       .catch(function () { return null; });
   }
+
+  /* ==================================================================
+     MÅLING (nDSM): auto-mål af ejendommen fra matrikel + bygninger + DHM.
+     Bruger kun endpoints der allerede er bevist live. Alt fejler stille → null.
+     ================================================================== */
+  function ringPerimeter(ring) {
+    var p = 0;
+    for (var i = 1; i < ring.length; i++) {
+      var dx = ring[i][0] - ring[i - 1][0], dy = ring[i][1] - ring[i - 1][1];
+      p += Math.sqrt(dx * dx + dy * dy);
+    }
+    return p;
+  }
+  function ringBbox(ring) {
+    var xs = ring.map(function (p) { return p[0]; }), ys = ring.map(function (p) { return p[1]; });
+    return [Math.min.apply(null, xs), Math.min.apply(null, ys), Math.max.apply(null, xs), Math.max.apply(null, ys)];
+  }
+  function pointInPoly(x, y, ring) {
+    var inside = false;
+    for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+      if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+    }
+    return inside;
+  }
+  function pctl(arr, p) {
+    if (!arr.length) return null;
+    var a = arr.slice().sort(function (x, y) { return x - y; });
+    return a[Math.max(0, Math.min(a.length - 1, Math.round(p * (a.length - 1))))];
+  }
+  function median(arr) { return pctl(arr, 0.5); }
+
+  /* DHM-dækning (dhm_terraen | dhm_overflade) som float32-gitter over bbox. */
+  function fetchGrid(coverage, bbox) {
+    var w = Math.max(16, Math.min(300, Math.round((bbox[2] - bbox[0]) / 0.4)));
+    var h = Math.max(16, Math.min(300, Math.round((bbox[3] - bbox[1]) / 0.4)));
+    var url = CFG.dhmWcsBase + "?SERVICE=WCS&VERSION=1.0.0&REQUEST=GetCoverage&COVERAGE=" + coverage +
+      "&CRS=epsg:25832&RESPONSE_CRS=epsg:25832&FORMAT=GTiff&WIDTH=" + w + "&HEIGHT=" + h +
+      "&BBOX=" + bbox.join(",") + "&" + tokenParam();
+    return fetch(url)
+      .then(function (r) { if (!r.ok) throw new Error("DHM " + r.status); return r.arrayBuffer(); })
+      .then(function (buf) { return GeoTIFF.fromArrayBuffer(buf); })
+      .then(function (t) { return t.getImage(); })
+      .then(function (img) {
+        return img.readRasters().then(function (ras) {
+          return { data: ras[0], w: img.getWidth(), h: img.getHeight(), bbox: bbox };
+        });
+      });
+  }
+  function sampleGrid(g, X, Y) {
+    var col = Math.floor((X - g.bbox[0]) / (g.bbox[2] - g.bbox[0]) * g.w);
+    var row = Math.floor((g.bbox[3] - Y) / (g.bbox[3] - g.bbox[1]) * g.h); // GeoTIFF: række 0 = nord
+    if (col < 0 || col >= g.w || row < 0 || row >= g.h) return NaN;
+    return g.data[row * g.w + col];
+  }
+
+  /* Alle bygninger på grunden (hovedhus + skure/carporte), filtreret via matrikel-polygon. */
+  function getBuildingsOnParcel(centroid, parcelRing) {
+    var bb = ringBbox(parcelRing);
+    var R = Math.max(30, 0.75 * Math.max(bb[2] - bb[0], bb[3] - bb[1]) + 15);
+    var url = CFG.dawaBase + "/bygninger?cirkel=" + Math.round(centroid[0]) + "," + Math.round(centroid[1]) +
+      "," + Math.round(R) + "&format=geojson&srid=25832";
+    return fetch(url)
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (gj) {
+        var out = [];
+        ((gj && gj.features) || []).forEach(function (f) {
+          var g = f.geometry; if (!g) return;
+          var ring = g.type === "MultiPolygon" ? g.coordinates[0][0] : g.coordinates[0];
+          var pr = f.properties || {};
+          var cx = pr.visueltcenter_x, cy = pr.visueltcenter_y;
+          if (cx == null) { cx = 0; cy = 0; ring.forEach(function (p) { cx += p[0]; cy += p[1]; }); cx /= ring.length; cy /= ring.length; }
+          if (pointInPoly(cx, cy, parcelRing)) out.push({ ring: ring, area: ringArea(ring), perimeter: ringPerimeter(ring) });
+        });
+        return out;
+      })
+      .catch(function () { return []; });
+  }
+
+  function measureProperty(adresse) {
+    if (!CFG.token || typeof GeoTIFF === "undefined") return Promise.resolve(null);
+    return geocode(adresse).then(function (geo) {
+      return getParcel(geo.id).then(function (parcel) {
+        if (!parcel) return null;
+        var pbb = ringBbox(parcel.ring), mg = 6;
+        var bbox = [pbb[0] - mg, pbb[1] - mg, pbb[2] + mg, pbb[3] + mg];
+        return Promise.all([
+          getBuildingsOnParcel(parcel.centroid, parcel.ring),
+          fetchGrid("dhm_terraen", bbox).catch(function () { return null; }),
+          fetchGrid("dhm_overflade", bbox).catch(function () { return null; })
+        ]).then(function (res) {
+          var buildings = res[0], dtm = res[1], dsm = res[2];
+          var ndsm = function (X, Y) {
+            if (!dtm || !dsm) return NaN;
+            var a = sampleGrid(dsm, X, Y), b = sampleGrid(dtm, X, Y);
+            return (isFinite(a) && isFinite(b)) ? a - b : NaN;
+          };
+          var grundAreal = parcel.registreretareal || ringArea(parcel.ring);
+          var grundOmkreds = ringPerimeter(parcel.ring);
+          var bygningsAreal = buildings.reduce(function (s, b) { return s + b.area; }, 0);
+          var m = {
+            grundAreal: Math.round(grundAreal),
+            grundOmkreds: Math.round(grundOmkreds),
+            bygningsAreal: Math.round(bygningsAreal),
+            haveAreal: Math.max(0, Math.round(grundAreal - bygningsAreal)),
+            antalBygninger: buildings.length,
+            haekLangde: Math.round(grundOmkreds) // øvre grænse; kunden kan justere
+          };
+          var main = buildings.slice().sort(function (a, b) { return b.area - a.area; })[0];
+          if (main) {
+            m.tagAreal = Math.round(main.area);
+            m.tagOmkreds = Math.round(main.perimeter);
+            m.tagrendeLangde = Math.round(main.perimeter * 0.6); // tagfod ≈ 60% af omkreds (saddeltag)
+            if (dtm && dsm && dsm.w === dtm.w && dsm.h === dtm.h) {
+              // Højde + hældning fra DSM-gitteret over bygningens fodaftryk.
+              var W = dsm.w, Hh = dsm.h, bx0 = dsm.bbox[0], by1 = dsm.bbox[3];
+              var csx = (dsm.bbox[2] - dsm.bbox[0]) / W, csy = (dsm.bbox[3] - dsm.bbox[1]) / Hh;
+              var bb = ringBbox(main.ring);
+              var c0 = Math.max(1, Math.floor((bb[0] - bx0) / csx)), c1 = Math.min(W - 2, Math.ceil((bb[2] - bx0) / csx));
+              var r0 = Math.max(1, Math.floor((by1 - bb[3]) / csy)), r1 = Math.min(Hh - 2, Math.ceil((by1 - bb[1]) / csy));
+              var heights = [], slopes = [];
+              for (var r = r0; r <= r1; r++) {
+                for (var c = c0; c <= c1; c++) {
+                  var Xc = bx0 + (c + 0.5) * csx, Yc = by1 - (r + 0.5) * csy;
+                  if (!pointInPoly(Xc, Yc, main.ring)) continue;
+                  var idx = r * W + c, nd = dsm.data[idx] - dtm.data[idx];
+                  if (!(nd > 1)) continue; // kun tag (over terræn)
+                  heights.push(nd);
+                  var dzdx = (dsm.data[idx + 1] - dsm.data[idx - 1]) / (2 * csx);
+                  var dzdy = (dsm.data[idx - W] - dsm.data[idx + W]) / (2 * csy);
+                  slopes.push(Math.atan(Math.sqrt(dzdx * dzdx + dzdy * dzdy)) * 180 / Math.PI);
+                }
+              }
+              if (heights.length > 5) {
+                m.rygHojde = Math.round(pctl(heights, 0.97) * 10) / 10;
+                m.tagfodHojde = Math.round(pctl(heights, 0.15) * 10) / 10;
+                var pitch = Math.max(0, Math.min(60, median(slopes)));
+                m.taghaeldning = Math.round(pitch);
+                m.tagArealSkraat = Math.round(main.area / Math.cos(pitch * Math.PI / 180));
+              }
+            }
+          }
+          if (dtm && dsm) {
+            var hv = [];
+            for (var i = 1; i < parcel.ring.length; i++) {
+              var ax = parcel.ring[i - 1][0], ay = parcel.ring[i - 1][1];
+              var bx = parcel.ring[i][0], by = parcel.ring[i][1];
+              var n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / 2));
+              for (var s = 0; s < n; s++) {
+                var t = s / n, hh2 = ndsm(ax + (bx - ax) * t, ay + (by - ay) * t);
+                if (isFinite(hh2) && hh2 > 0.4 && hh2 < 3.5) hv.push(hh2);
+              }
+            }
+            var hm = median(hv);
+            if (hm != null) m.haekHojde = Math.round(hm * 10) / 10;
+          }
+          return m;
+        });
+      });
+    }).catch(function () { return null; });
+  }
+  NS.measureProperty = measureProperty;
 
   /* ---- 2) Koordinat → bedste skråfoto-item via STAC /search (intersects i WGS84) ---- */
   function findItem(lon, lat, direction) {
