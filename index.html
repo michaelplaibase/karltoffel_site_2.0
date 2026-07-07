@@ -23,7 +23,7 @@ Besøg os på www.bubble.dk eller ring til os på +45 6069 8700
 		<link rel="apple-touch-icon" href="/assets/img/design/appicon.png">
 	<link rel="stylesheet" href="/assets/css/typekit.css">
 	<link rel="stylesheet" type="text/css" href="/assets/css/style.css?v=3">
-	<link rel="stylesheet" href="/assets/css/tilbudsmotor.css?v=14">
+	<link rel="stylesheet" href="/assets/css/tilbudsmotor.css?v=15">
 	<link rel="stylesheet" href="/assets/css/spacing.css">
 		<link rel="preload" as="image"
 		href="/assets/img/thumb/e2a541dff09c05bfe2957c4875f7dfe5e570401c_w2000.webp"
@@ -352,26 +352,22 @@ Besøg os på www.bubble.dk eller ring til os på +45 6069 8700
 	    <div class="topbar">
 	      <div class="adr-line">
 	        <svg class="pin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11Z" stroke="#4C3718" stroke-width="2"/><circle cx="12" cy="10" r="2.6" fill="#4C3718"/></svg>
-	        <span id="t-adr"></span>
+	        <span class="adr-txt"><span class="lbl">Din adresse</span><span id="t-adr"></span></span>
 	      </div>
-	      <div class="fakta">
-	        <div><b>Boligtype</b><span id="t-type"></span></div>
-	        <div><b>Grundareal ca.</b><span id="t-grund"></span></div>
-	        <div><b>Opført ca.</b><span id="t-opfoert"></span></div>
-	        <div><b>Hæk ca.</b><span id="t-haek"></span></div>
-	      </div>
-	      <div class="regnestrimmel">
-	        <div><b>Valgte services</b><span id="t-count">0</span></div>
-	        <div><b>Besøg om året</b><span id="t-visits">0</span></div>
-	        <div><b>Pris pr. md</b><span id="t-pris">0 kr</span></div>
-	      </div>
-	      <p class="demo-hint">Ejendomstallene er ca.-tal for en typisk villa — ret mængderne direkte i listen herunder, så følger prisen med.</p>
+	      <button type="button" class="ls-skift" id="ls-skift">Skift adresse</button>
 	    </div>
 
-	    <p class="socio"><b>Villapakken</b> – det typiske valg til en ejendom som din. Slå til og fra, og skru på hvor tit vi kommer.</p>
-	    <div class="rows" id="rows"></div>
-	    <p class="addons-intro">Mangler du noget på listen? Vi tilbyder også…</p>
-	    <div class="addons" id="addons"></div>
+	    <p class="socio"><b>Villapakken</b> – det typiske valg til en ejendom som din. Fjern det, du ikke vil have, og vælg hvor tit vi kommer.</p>
+	    <div class="split">
+	      <div class="col left">
+	        <div class="col-head"><h3>Dine services</h3></div>
+	        <div class="rows" id="rows"></div>
+	      </div>
+	      <div class="col right">
+	        <div class="col-head"><h3>Tilvalg</h3><span class="meta">klik for at tilføje</span></div>
+	        <div class="addons" id="addons"></div>
+	      </div>
+	    </div>
 	    <p class="gaps">Services markeret "indeholdt / pris ved besøg" aftales, når vi ringer — uden det koster dig noget.</p>
 	    <div class="tm-nav">
 	      <button class="btn btn-nej" id="ls-tilbage">Tilbage</button>
@@ -1158,6 +1154,6 @@ Besøg os på www.bubble.dk eller ring til os på +45 6069 8700
 			<script src="/assets/js/tilbudsmotor.config.js?v=9"></script>
 			<script src="/assets/js/vendor/geotiff.min.js"></script>
 			<script src="/assets/js/skraafoto.js?v=12"></script>
-			<script src="/assets/js/tilbudsmotor.js?v=15"></script>
+			<script src="/assets/js/tilbudsmotor.js?v=16"></script>
 </body>
 </html>
