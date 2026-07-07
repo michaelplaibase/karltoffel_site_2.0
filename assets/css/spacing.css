@@ -3,6 +3,7 @@
    Designsystemet gav varierende afstande ved sektions-skift (100px, ~200px og
    ~30px omkring tilbudsmotoren). Her normaliseres alle skift til ÉN afstand:
    100px — den samme som mellem hero og "Mindre bøvl"-teksten.
+   Go-live 2026-07-07: mobil-redesign af tilbudsmotor + 100px rytme på hele sitet.
    ========================================================================== */
 
 /* Hver sektion bidrager udelukkende med 100px foroven og 0 forneden, og
@@ -14,11 +15,36 @@
   margin-bottom:0 !important;
 }
 
-/* Hero ligger flush mod toppen (under den faste header) — ingen top-luft. */
-.main-wrap .section--type-hero-big-button{ padding-top:0 !important; }
+/* Hero (alle typer, også undersidernes "type-hero") ligger flush mod toppen
+   under den faste header — ingen top-luft. */
+.main-wrap [class*="section--type-hero"]{ padding-top:0 !important; }
 
 /* Sidste indholdssektion beholder sin oprindelige bundluft mod footeren. */
 .main-wrap .section--type-cta{ padding-bottom:100px !important; }
+
+/* Farvede fuld-bredde sektioner (den gule theme-primary) skal have LIGE meget
+   luft foroven og forneden — ellers ser farve-boksen "cuttet" ud i bunden:
+   overskriften har 100px til toppen, men indholdet/knappen klistrede til
+   bundkanten (padding-bottom:0). Giv dem samme 100px i bunden som i toppen. */
+.main-wrap .section--theme-primary{ padding-bottom:100px !important; }
+
+/* CTA-sektionens to celler (tekst + tekst/knap) ligger side om side på desktop
+   via Foundation-grid'et, men grid'et har kun vandrette gutters (grid-margin-x).
+   Når cellerne stakker på mobil, rører de to afsnit derfor hinanden (0px imellem).
+   Giv den stakkede celle lidt luft, så afsnittene står skarpt adskilt. */
+@media (max-width:639px){
+  .main-wrap .section--type-cta .grid-margin-x > .cell + .cell{
+    margin-top:20px !important;
+  }
+}
+
+/* Cookie-badgen ligger fast i nederste venstre hjørne (~40px). På cookiepolitik-
+   siden løber de klikbare browser-links helt ud til venstre kant (listerne har
+   padding-left:0), så badgen rørte/dækkede det første bogstav i linket. Ryk
+   listerne ind på mobil, så linkteksten altid er fri af badgen. */
+@media (max-width:639px){
+  body[data-link="/p/cookiepolitik"] .content.rte ul{ padding-left:40px !important; }
+}
 
 /* Tilbudsmotoren ligger inde i pakke-sektionen (ikke et top-niveau-skift).
    Nulstil headerens bundafstand og giv motoren 100px over og under, så den

@@ -125,86 +125,96 @@
 .tm-flow .verify small{display:block;margin-top:16px;opacity:.65;font-size:13px}
 .tm-flow .sf-angle-hint{display:none;margin-top:14px;color:var(--gul);font-size:14px;opacity:.9}
 
-/* STEP 4: LØSNINGSLISTE */
-/* Bund-luft: cta-baren er ~100px høj på mobil, +safe-area på iPhones — nav-knapperne må aldrig gemme sig bag den */
-.tm-flow .losning{padding:28px 0 calc(130px + env(safe-area-inset-bottom, 0px))}
-/* Programmatic scroll (scrollIntoView) skal også regne cta-baren med */
-.tm-flow .losning .tm-nav{scroll-margin-bottom:130px}
-.tm-flow .topbar{position:sticky;top:82px;z-index:40;background:var(--ivory);color:var(--brun);border-radius:18px;padding:18px 22px;box-shadow:0 14px 34px rgba(0,0,0,.3)}
-.tm-flow .topbar .adr-line{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px}
-.tm-flow .pin{width:16px;height:16px;flex:none}
-.tm-flow .fakta{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid #e4dfc8}
-.tm-flow .fakta div b{display:block;font-size:12px;color:var(--bronze);font-weight:500;letter-spacing:.04em}
-.tm-flow .fakta div span{font-size:16px;font-weight:700}
-.tm-flow .regnestrimmel{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid #e4dfc8}
-.tm-flow .regnestrimmel div b{display:block;font-size:12px;color:var(--bronze);font-weight:500}
-.tm-flow .regnestrimmel div span{font-size:23px;font-weight:700}
-.tm-flow #t-pris{color:var(--brun)}
-.tm-flow .demo-hint{font-size:12px;color:var(--bronze);margin-top:12px}
+/* STEP 4: LØSNINGSLISTE — todelt udvælgelse (mobile-first) */
+.tm-flow .losning{padding:24px 0 48px}
 
-.tm-flow .socio{margin:30px 0 12px;font-size:15px;color:var(--gul)}   /* flugter med kort-grid'et */
-.tm-flow .rows{display:flex;flex-direction:column;gap:12px}
-.tm-flow .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:16px;align-items:center;background:var(--gul);color:var(--brun);border-radius:16px;padding:16px 18px}
-.tm-flow .row--noqty{grid-template-columns:auto minmax(0,1fr) auto auto}
+/* Adresseboks — kun adressen + "Skift adresse" */
+.tm-flow .topbar{display:flex;align-items:center;gap:11px;background:var(--ivory);color:var(--brun);border-radius:18px;padding:15px 18px;box-shadow:0 14px 34px rgba(0,0,0,.3)}
+.tm-flow .topbar .adr-line{display:flex;align-items:center;gap:9px;min-width:0}
+.tm-flow .pin{width:18px;height:18px;flex:none}
+.tm-flow .adr-txt{min-width:0}
+.tm-flow .adr-txt .lbl{display:block;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--bronze);font-weight:600;margin-bottom:1px}
+.tm-flow #t-adr{display:block;font-size:17px;font-weight:700;line-height:1.2}   /* fuld adresse — wrapper på smalle skærme frem for at klippe */
+.tm-flow .ls-skift{margin-left:auto;flex:none;background:none;border:0;color:var(--bronze);font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+
+.tm-flow .socio{margin:22px 2px 4px;font-size:15px;color:var(--gul)}
+
+/* Todelt skærm — base = stakket (mobil) */
+.tm-flow .split{display:grid;grid-template-columns:1fr;gap:6px;margin-top:14px}
+.tm-flow .col{min-width:0;padding:14px 2px 4px}
+.tm-flow .col-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 4px 12px}
+.tm-flow .col-head h3{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gul);font-weight:700}
+.tm-flow .col-head .meta{font-size:12px;color:rgba(255,255,240,.6)}
+
+/* Venstre: service-kort som ÉN række på ALLE skærme (samme layout som desktop).
+   Navnet (1fr) ombryder lange navne til 2 linjer; pris + frekvens holdes til højre. */
+.tm-flow .rows{display:flex;flex-direction:column;gap:9px}
+.tm-flow .row{display:grid;grid-template-columns:auto minmax(0,1fr) 44px auto;grid-template-areas:"chk navn pw fw";column-gap:7px;align-items:center;background:var(--gul);color:var(--brun);border-radius:13px;padding:10px 11px}
 .tm-flow .row--incl{background:#fbf3ad}
-.tm-flow .row input[type=checkbox]{width:24px;height:24px;accent-color:var(--brun)}
-.tm-flow .row .navn{min-width:0}
-.tm-flow .row .navn b{font-size:17px}
-.tm-flow .row .navn small{display:block;font-size:12.5px;color:var(--bronze);margin-top:2px}
-.tm-flow .qty{display:flex;align-items:center;gap:6px;font-size:13px}
-/* 16px font: under 16 zoomer iOS ind ved fokus */
-.tm-flow .qty input{width:72px;padding:7px 8px;border-radius:8px;border:1.5px solid var(--bronze);background:#fff;color:var(--brun);font-size:16px;text-align:right}
-.tm-flow .freq{display:flex;align-items:center;gap:10px;justify-self:end}
-.tm-flow .freq button{width:44px;height:44px;border-radius:10px;border:0;background:var(--brun);color:var(--gul);font-size:19px;font-weight:700;line-height:1}   /* 44px touch-mål på ALLE bredder (også tablets) */
-.tm-flow .freq button:disabled{opacity:.3;cursor:default}
-.tm-flow .freq .fv{min-width:74px;text-align:center;font-size:14px}
-.tm-flow .row .pris{justify-self:end;text-align:right;min-width:110px}
-.tm-flow .row .pris b{font-size:17px}
-.tm-flow .row .pris small{display:block;font-size:12px;color:var(--bronze)}
-.tm-flow .row--incl .pris b{font-size:13px;font-weight:600;color:var(--bronze)}
-@media (max-width:720px){
-  .tm-flow .row{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"chk navn" "chk qty" "freq freq" "pris pris";gap:10px 14px}
-  .tm-flow .row--noqty{grid-template-areas:"chk navn" "freq freq" "pris pris"}
-  .tm-flow .row input[type=checkbox]{grid-area:chk;width:28px;height:28px}
-  .tm-flow .row .navn{grid-area:navn}.tm-flow .row .qty{grid-area:qty}
-  .tm-flow .row .freq{grid-area:freq;justify-self:start}
-  .tm-flow .row .pris{grid-area:pris;justify-self:start;text-align:left;min-width:0;display:flex;gap:8px;align-items:baseline}
-  .tm-flow .row .pris small{margin-top:0}
-  .tm-flow .fakta,.tm-flow .regnestrimmel{grid-template-columns:repeat(2,1fr)}
-  /* Kundetype-kortene skal have ENS bredde, når de stakker */
-  .tm-flow .ktype-card{width:100%}
-  /* Topbaren er ~450px høj på mobil — sticky ville kun efterlade ~180px scroll-vindue.
-     Cta-baren i bunden viser prisen konstant, så sticky er overflødig her. */
-  .tm-flow .topbar{position:static;top:auto}
-}
-.tm-flow .gaps{margin:26px 0 0;font-size:13px;opacity:.7}
+.tm-flow .row input[type=checkbox]{grid-area:chk;width:21px;height:21px;accent-color:var(--brun);cursor:pointer}
+.tm-flow .row .navn{grid-area:navn;min-width:0;white-space:normal;overflow-wrap:break-word;font-size:12.5px;font-weight:700;line-height:1.25;cursor:pointer}
+/* Pris pr. gang — label over tallet (kompakt; indhold styrer bredden på mobil) */
+.tm-flow .pw{grid-area:pw;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tm-flow .pw-lbl{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--bronze);font-weight:700;white-space:nowrap}
+.tm-flow .pw-val{font-size:13px;font-weight:800;color:var(--brun);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tm-flow .pw-note{font-size:12.5px;color:var(--bronze);font-weight:600;white-space:nowrap;text-align:center}
+/* Frekvens — "Besøg om året" over stepperen */
+.tm-flow .fw{grid-area:fw;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tm-flow .fw-lbl{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--bronze);font-weight:700;white-space:nowrap}
+.tm-flow .fw-ctl{display:flex;align-items:center;gap:4px}
+.tm-flow .fw-ctl button{width:26px;height:26px;border-radius:8px;border:0;background:var(--brun);color:var(--gul);font-size:16px;font-weight:700;line-height:1;display:grid;place-items:center}
+.tm-flow .fw-ctl button:disabled{opacity:.3;cursor:default}
+.tm-flow .fw-ctl b{min-width:14px;text-align:center;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
 
-/* "Vi tilbyder også" — tilvalg som kompakte chips */
-.tm-flow .addons-intro{margin:30px 0 14px;font-size:15px;color:var(--gul)}
-.tm-flow .addons{display:flex;flex-direction:column;gap:18px}
-.tm-flow .addon-cat{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gul);opacity:.85;margin-bottom:9px}
-.tm-flow .addon-list{display:flex;flex-wrap:wrap;gap:10px}
-/* pointer-events:auto ophæver sidens globale label{pointer-events:none} (vores chips er <label>). */
-.tm-flow .addon{display:flex;align-items:center;gap:11px;background:rgba(255,248,123,.06);border:1.5px solid var(--bronze);border-radius:12px;padding:10px 14px;cursor:pointer;pointer-events:auto;transition:background .15s,border-color .15s}
-.tm-flow .addon:hover{background:rgba(255,248,123,.15);border-color:var(--gul)}
-.tm-flow .addon input[type=checkbox]{width:20px;height:20px;accent-color:var(--gul);flex:none;pointer-events:auto}
-.tm-flow .addon b{display:block;font-size:14px;color:var(--ivory)}
-.tm-flow .addon small{display:block;font-size:12px;color:var(--gul);opacity:.75}
+/* Højre: kun-navn tilvalg */
+.tm-flow .addons{display:flex;flex-direction:column;gap:14px}
+.tm-flow .addon-cat{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gul);opacity:.7;margin-bottom:8px}
+.tm-flow .addon-list{display:flex;flex-direction:column;gap:8px}
+/* pointer-events:auto ophæver sidens globale label{pointer-events:none} (chips er <label>). */
+.tm-flow .addon{display:flex;align-items:center;gap:10px;background:rgba(255,248,123,.05);border:1.5px solid var(--bronze);border-radius:12px;padding:11px 14px;cursor:pointer;pointer-events:auto;transition:background .15s,border-color .15s}
+.tm-flow .addon:hover{background:rgba(255,248,123,.12);border-color:var(--gul)}
+.tm-flow .addon:focus-within{outline:3px solid var(--gul);outline-offset:2px}
+/* Ægte checkbox (state + tastatur/skærmlæser) skjules visuelt; "+"-cirklen er den synlige affordance. */
+.tm-flow .addon input[type=checkbox]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.tm-flow .addon-navn{flex:1;min-width:0;font-size:14px;color:var(--ivory);font-weight:600}
+.tm-flow .addon-add{width:26px;height:26px;flex:none;border-radius:50%;border:1.5px solid var(--bronze);color:var(--gul);font-size:17px;line-height:1;display:grid;place-items:center;transition:background .15s,color .15s,border-color .15s}
+.tm-flow .addon:hover .addon-add{background:var(--gul);color:var(--brun);border-color:var(--gul)}
 
-/* fixed pris-bar — kun synlig på løsnings-trinnet, og kun mens sektionen er i viewport */
-.tm-flow .cta-bar{position:fixed;left:0;right:0;bottom:0;background:var(--gul);color:var(--brun);display:none;z-index:60}
-.tm-flow .cta-bar.on{display:block}
-.tm-flow .cta-bar.on.off{display:none}   /* scrollet forbi sektionen (IntersectionObserver) */
-.tm-flow .cta-inner{max-width:1040px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 24px calc(14px + env(safe-area-inset-bottom, 0px))}
-@media (max-width:430px){
-  .tm-flow .cta-inner{padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px));gap:12px}
-  .tm-flow .cta-inner .sum b{font-size:20px}
-  .tm-flow .btn-cta{padding:14px 18px;white-space:nowrap}
+/* Flash når et felt skifter kolonne */
+@keyframes tm-flash{0%{box-shadow:0 0 0 3px var(--gul)}100%{box-shadow:0 0 0 0 transparent}}
+.tm-flow .flash{animation:tm-flash .6s ease}
+
+/* Tablet/desktop: todelt med lodret skille */
+@media (min-width:760px){
+  .tm-flow .split{grid-template-columns:1fr 1fr;gap:0}
+  .tm-flow .col.left{padding-left:2px;padding-right:22px}
+  .tm-flow .col.right{padding-left:22px;padding-right:2px;border-left:1px solid rgba(255,248,123,.16)}
 }
-.tm-flow .cta-inner .sum{min-width:0}
-.tm-flow .cta-inner .sum b{font-size:24px;white-space:nowrap}
-.tm-flow .cta-inner .sum small{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tm-flow .btn-cta{background:var(--brun);color:var(--gul);border:0;border-radius:12px;padding:15px 26px;font-size:17px;font-weight:700}
+/* Bred desktop: mere luft + linede steppere på tværs af rækker (den godkendte visning) */
+@media (min-width:1024px){
+  .tm-flow .row{grid-template-columns:auto 1fr auto auto;column-gap:16px;padding:10px 16px}
+  .tm-flow .row .navn{font-size:15px}
+  .tm-flow .pw{min-width:84px}
+  .tm-flow .pw-val{font-size:15px}
+  .tm-flow .fw{min-width:112px}
+  .tm-flow .fw-ctl{gap:8px}
+  .tm-flow .fw-ctl button{width:36px;height:36px;font-size:19px}
+  .tm-flow .fw-ctl b{min-width:20px;font-size:15px}
+}
+/* Mobil: mindre side-margin på sektionen → mere bredde til kortene */
+@media (max-width:600px){ .tm-flow .tm-main{padding-left:16px;padding-right:16px} }
+/* Under desktop: skjul mikro-labels så navnet får plads (værdi + stepper er selvforklarende).
+   "Indeholdt i pakken"-noten ombrydes i den smalle pris-kolonne i stedet for at æde navnets plads. */
+@media (max-width:1023px){
+  .tm-flow .pw-lbl,.tm-flow .fw-lbl{display:none}
+  .tm-flow .pw-note{white-space:normal;font-size:10.5px;line-height:1.12;text-align:center}
+}
+
+/* Kundetype-kortene (trin 2) skal have ENS bredde, når de stakker */
+@media (max-width:720px){ .tm-flow .ktype-card{width:100%} }
+
+.tm-flow .gaps{margin:22px 0 0;font-size:13px;opacity:.7}
+
 
 /* STEP 5: KONTAKT + TAK */
 .tm-flow .kontakt{max-width:560px;margin:0 auto;padding:36px 0}
