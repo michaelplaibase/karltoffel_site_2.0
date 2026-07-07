@@ -3,6 +3,7 @@
    Designsystemet gav varierende afstande ved sektions-skift (100px, ~200px og
    ~30px omkring tilbudsmotoren). Her normaliseres alle skift til ÉN afstand:
    100px — den samme som mellem hero og "Mindre bøvl"-teksten.
+   Go-live 2026-07-07: mobil-redesign af tilbudsmotor + 100px rytme på hele sitet.
    ========================================================================== */
 
 /* Hver sektion bidrager udelukkende med 100px foroven og 0 forneden, og
