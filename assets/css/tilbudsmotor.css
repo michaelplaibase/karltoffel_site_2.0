@@ -148,26 +148,25 @@
 .tm-flow .col-head h3{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gul);font-weight:700}
 .tm-flow .col-head .meta{font-size:12px;color:rgba(255,255,240,.6)}
 
-/* Venstre: service-kort som bevidst grid (ikke flex-wrap).
-   Base (mobil + smal tablet): 2 rækker — checkbox + navn øverst; meta-række
-   under navnet med pris i venstre kant og frekvens i højre kant. */
+/* Venstre: service-kort som ÉN række på ALLE skærme (samme layout som desktop).
+   Navnet (1fr) ombryder lange navne til 2 linjer; pris + frekvens holdes til højre. */
 .tm-flow .rows{display:flex;flex-direction:column;gap:9px}
-.tm-flow .row{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"chk navn navn" ".  pw  fw";column-gap:12px;row-gap:9px;align-items:center;background:var(--gul);color:var(--brun);border-radius:13px;padding:12px 15px}
+.tm-flow .row{display:grid;grid-template-columns:auto minmax(0,1fr) 44px auto;grid-template-areas:"chk navn pw fw";column-gap:7px;align-items:center;background:var(--gul);color:var(--brun);border-radius:13px;padding:10px 11px}
 .tm-flow .row--incl{background:#fbf3ad}
 .tm-flow .row input[type=checkbox]{grid-area:chk;width:21px;height:21px;accent-color:var(--brun);cursor:pointer}
-.tm-flow .row .navn{grid-area:navn;min-width:0;font-size:15px;font-weight:700;line-height:1.2;cursor:pointer}
-/* Pris pr. gang — label over tallet (venstrestillet på mobil) */
-.tm-flow .pw{grid-area:pw;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:92px}
+.tm-flow .row .navn{grid-area:navn;min-width:0;white-space:normal;overflow-wrap:break-word;font-size:12.5px;font-weight:700;line-height:1.25;cursor:pointer}
+/* Pris pr. gang — label over tallet (kompakt; indhold styrer bredden på mobil) */
+.tm-flow .pw{grid-area:pw;display:flex;flex-direction:column;align-items:center;gap:2px}
 .tm-flow .pw-lbl{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--bronze);font-weight:700;white-space:nowrap}
-.tm-flow .pw-val{font-size:15px;font-weight:800;color:var(--brun);font-variant-numeric:tabular-nums}
+.tm-flow .pw-val{font-size:13px;font-weight:800;color:var(--brun);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tm-flow .pw-note{font-size:12.5px;color:var(--bronze);font-weight:600;white-space:nowrap;text-align:center}
-/* Frekvens — "Besøg om året" over stepperen (højrestillet på mobil) */
-.tm-flow .fw{grid-area:fw;display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:118px}
+/* Frekvens — "Besøg om året" over stepperen */
+.tm-flow .fw{grid-area:fw;display:flex;flex-direction:column;align-items:center;gap:3px}
 .tm-flow .fw-lbl{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--bronze);font-weight:700;white-space:nowrap}
-.tm-flow .fw-ctl{display:flex;align-items:center;gap:8px}
-.tm-flow .fw-ctl button{width:36px;height:36px;border-radius:9px;border:0;background:var(--brun);color:var(--gul);font-size:19px;font-weight:700;line-height:1;display:grid;place-items:center}
+.tm-flow .fw-ctl{display:flex;align-items:center;gap:4px}
+.tm-flow .fw-ctl button{width:26px;height:26px;border-radius:8px;border:0;background:var(--brun);color:var(--gul);font-size:16px;font-weight:700;line-height:1;display:grid;place-items:center}
 .tm-flow .fw-ctl button:disabled{opacity:.3;cursor:default}
-.tm-flow .fw-ctl b{min-width:20px;text-align:center;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.tm-flow .fw-ctl b{min-width:14px;text-align:center;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
 
 /* Højre: kun-navn tilvalg */
 .tm-flow .addons{display:flex;flex-direction:column;gap:14px}
@@ -193,10 +192,24 @@
   .tm-flow .col.left{padding-left:2px;padding-right:22px}
   .tm-flow .col.right{padding-left:22px;padding-right:2px;border-left:1px solid rgba(255,248,123,.16)}
 }
-/* Bred desktop: kortet på én linje (den godkendte enkeltlinje-visning) */
+/* Bred desktop: mere luft + linede steppere på tværs af rækker (den godkendte visning) */
 @media (min-width:1024px){
-  .tm-flow .row{grid-template-columns:auto 1fr auto auto;grid-template-areas:"chk navn pw fw";column-gap:16px;row-gap:0;padding:10px 16px}
-  .tm-flow .row .pw,.tm-flow .row .fw{align-items:center}
+  .tm-flow .row{grid-template-columns:auto 1fr auto auto;column-gap:16px;padding:10px 16px}
+  .tm-flow .row .navn{font-size:15px}
+  .tm-flow .pw{min-width:84px}
+  .tm-flow .pw-val{font-size:15px}
+  .tm-flow .fw{min-width:112px}
+  .tm-flow .fw-ctl{gap:8px}
+  .tm-flow .fw-ctl button{width:36px;height:36px;font-size:19px}
+  .tm-flow .fw-ctl b{min-width:20px;font-size:15px}
+}
+/* Mobil: mindre side-margin på sektionen → mere bredde til kortene */
+@media (max-width:600px){ .tm-flow .tm-main{padding-left:16px;padding-right:16px} }
+/* Under desktop: skjul mikro-labels så navnet får plads (værdi + stepper er selvforklarende).
+   "Indeholdt i pakken"-noten ombrydes i den smalle pris-kolonne i stedet for at æde navnets plads. */
+@media (max-width:1023px){
+  .tm-flow .pw-lbl,.tm-flow .fw-lbl{display:none}
+  .tm-flow .pw-note{white-space:normal;font-size:10.5px;line-height:1.12;text-align:center}
 }
 
 /* Kundetype-kortene (trin 2) skal have ENS bredde, når de stakker */
